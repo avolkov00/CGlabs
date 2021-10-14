@@ -3,10 +3,11 @@
 #include<cstdlib>
 #include <cmath>
 #include <cstdio>
+#include <math.h>
 
 #define PI 3.14159265f
 
-char title[] = "Bouncing Ball (2D)";
+char title[] = "Cycle";
 int windowWidth = 640;
 int windowHeight = 480;
 int windowPosX = 50;
@@ -20,12 +21,14 @@ GLdouble xLeft, xRight, yBottom, yTop;
 GLfloat xSpeed = 0.02f;
 GLfloat ySpeed = 0.0f;
 int refreshMillis = 30;
+bool day = 0;
+GLfloat sky_colour[3];
 
 void initGL() {
 	glClearColor(0.0, 0.75, 1.0, 1.0);
 	// рассчет освещения
 
-	//glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 
 	// двухсторонний расчет освещения
 
@@ -44,11 +47,33 @@ void display() {
 
 	glLoadIdentity();
 	
-	GLfloat light_position1[] = { xPos, yPos, 1, 1 };
-	GLfloat light1[] = { 1, 1, 1, 1 };
+	GLfloat light_position1[] = { xPos, yPos, 2, 1 };
+	GLfloat light1[] = { 1, 1, 1, 0 };
+
+	//Небо
+	glBegin(GL_QUADS);
+	if (day) {
+		sky_colour[0] = 0.0f;
+		sky_colour[1] = 0.75f;
+		sky_colour[2] = 1.0f;
+	}
+	else {
+		sky_colour[0] = 0.0f;
+		sky_colour[1] = 0.0f;
+		sky_colour[2] = 0.3f;
+	}
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, sky_colour);
+	//glMaterialfv(GL_FRONT, GL_SPECULAR, ground_colour);
+	//glMaterialfv(GL_FRONT, GL_AMBIENT, ground_colour);
+
+	glColor3f(0.0f, 0.75f, 1.0f);
+	glVertex2f(xLeft, yBottom * 0.1);
+	glVertex2f(xRight, yBottom * 0.1);
+	glVertex2f(xRight, yTop);
+	glVertex2f(xLeft, yTop);
+	glEnd();
 
 	// setup
-	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 
 	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.05);
@@ -58,10 +83,44 @@ void display() {
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, light1);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, light1);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position1);
+	
+	glTranslatef(xPos, yPos, 0.0f);
+
+	glBegin(GL_TRIANGLE_FAN);
+	GLfloat sun_colour[] = { 1.0f, 0.5f, 0.1f };
+	if (day) {
+		sun_colour[0] = 1.0f;
+		sun_colour[1] = 0.5f;
+		sun_colour[2] = 0.1f;
+	}
+	else {
+		sun_colour[0] = 0.9f;
+		sun_colour[1] = 0.9f;
+		sun_colour[2] = 0.9f;
+	}
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, sun_colour);
+	glColor3f(1.0f, 0.5f, 0.1f);
+	glVertex2f(0.0f, 0.0f);
+	int numSegments = 100;
+	GLfloat angle;
+	for (int i = 0; i <= numSegments; i++)
+	{
+		angle = i * 2.0f * PI / numSegments;
+		glVertex2f(cos(angle) * ballRadius, sin(angle) * ballRadius);
+	}
+	glEnd();
+
+	glTranslatef(-xPos, -yPos, 0.0f);
+
+	
+	
 	//Земля
 	glBegin(GL_QUADS);
-	GLfloat ground_colour[] = { 0.1f, 0.5f, 0.3f };
+	GLfloat ground_colour[] = { 0.09f, 0.45f, 0.27f };
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, ground_colour);
+	//glMaterialfv(GL_FRONT, GL_SPECULAR, ground_colour);
+	//glMaterialfv(GL_FRONT, GL_AMBIENT, ground_colour);
+
 	glColor3f(0.1f, 0.5f, 0.3f);
 	glVertex2f(xLeft, yBottom * 0.1);
 	glVertex2f(xRight, yBottom * 0.1);
@@ -71,6 +130,8 @@ void display() {
 	//Дом
 	GLfloat house_colour[] = { 0.5f, 0.2f, 0.0 };
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, house_colour);
+	//glMaterialfv(GL_FRONT, GL_SPECULAR, house_colour);
+	//glMaterialfv(GL_FRONT, GL_AMBIENT, house_colour);
 	glBegin(GL_QUADS);
 	glColor3f(0.5f, 0.2f, 0.0f);
 	glVertex2f(xRight * 0.2, yBottom * 0.1);
@@ -106,42 +167,17 @@ void display() {
 	glVertex2f(xRight * 0.5, yTop * 0.3);
 	glEnd();
 
-	glTranslatef(xPos, yPos, 0.0f);
-
-	glBegin(GL_TRIANGLE_FAN);
-	GLfloat sun_colour[] = { 1.0f, 0.5f, 0.1f };
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, sun_colour);
-	glColor3f(1.0f, 0.5f, 0.1f);
-	glVertex2f(0.0f, 0.0f);
-	int numSegments = 100;
-	GLfloat angle;
-	for (int i = 0; i <= numSegments; i++)
-	{
-		angle = i * 2.0f * PI / numSegments;
-		glVertex2f(cos(angle) * ballRadius, sin(angle) * ballRadius);
-	}
-	glEnd();
+	
 
 	glutSwapBuffers();
 
 	xPos += xSpeed;
-	yPos += ySpeed;
+	yPos = sqrt(((xPosMax -abs(xPos))/ xPosMax)*yPosMax);
 
 	if (xPos > xPosMax) {
 		xPos = xPosMin;
-		//xSpeed = -xSpeed;
-	}
-	else if (xPos < xPosMin) {
-		xPos = xPosMin;
-		xSpeed = -xSpeed;
-	}
-	if (yPos > yPosMax) {
-		yPos = yPosMax;
-		ySpeed = -ySpeed;
-	}
-	else if (yPos < yPosMin) {
-		yPos = yPosMin;
-		ySpeed = -ySpeed;
+		yPos = sqrt(((xPosMax - abs(xPos)) / xPosMax) * yPosMax);
+		day = !day;
 	}
 }
 
@@ -170,7 +206,7 @@ void reshape(GLsizei weight, GLsizei height) {
 	gluOrtho2D(xLeft, xRight, yBottom, yTop);
 	xPosMin = xLeft;
 	xPosMax = xRight;
-	yPosMin = yBottom + ballRadius;
+	yPosMin = yBottom ;
 	yPosMax = yTop - ballRadius;
 
 
