@@ -30,15 +30,6 @@ void initGL() {
 
 	glEnable(GL_LIGHTING);
 
-	// двухсторонний расчет освещения
-
-	//glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-
-	// автоматическое приведение нормалей к
-
-	// единичной длине
-
-	//glEnable(GL_NORMALIZE);
 }
 
 
@@ -60,7 +51,7 @@ void display() {
 	else {
 		sky_colour[0] = 0.0f;
 		sky_colour[1] = 0.0f;
-		sky_colour[2] = 0.3f;
+		sky_colour[2] = 0.2f;
 	}
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, sky_colour);
 	//glMaterialfv(GL_FRONT, GL_SPECULAR, ground_colour);
@@ -112,11 +103,9 @@ void display() {
 
 	glTranslatef(-xPos, -yPos, 0.0f);
 
-	
-	
 	//Земля
 	glBegin(GL_QUADS);
-	GLfloat ground_colour[] = { 0.09f, 0.45f, 0.27f };
+	GLfloat ground_colour[] = { 0.09f, 0.35f, 0.17f };
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, ground_colour);
 	//glMaterialfv(GL_FRONT, GL_SPECULAR, ground_colour);
 	//glMaterialfv(GL_FRONT, GL_AMBIENT, ground_colour);
@@ -127,6 +116,7 @@ void display() {
 	glVertex2f(xRight, yBottom);
 	glVertex2f(xLeft, yBottom);
 	glEnd();
+
 	//Дом
 	GLfloat house_colour[] = { 0.5f, 0.2f, 0.0 };
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, house_colour);
@@ -140,6 +130,7 @@ void display() {
 	glVertex2f(xRight * 0.2, yTop * 0.5);
 	glEnd();
 
+	//крыша
 	glBegin(GL_TRIANGLES);
 	GLfloat roof_colour[] = { 0.3f, 0.3f, 0.3f };
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, roof_colour);
@@ -149,6 +140,7 @@ void display() {
 	glVertex2f(xRight * 0.75, yTop * 0.5);
 	glEnd();
 
+	//окна
 	glBegin(GL_QUADS);
 	GLfloat windows_colour[] = { 0.9f, 0.9f, 0.6f };
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, windows_colour);
@@ -157,10 +149,7 @@ void display() {
 	glVertex2f(xRight * 0.4, yTop * 0.1);
 	glVertex2f(xRight * 0.4, yTop * 0.3);
 	glVertex2f(xRight * 0.3, yTop * 0.3);
-	glEnd(); 
-
-	glBegin(GL_QUADS);
-	glColor3f(0.9f, 0.9f, 0.6f);
+	
 	glVertex2f(xRight * 0.5, yTop * 0.1);
 	glVertex2f(xRight * 0.6, yTop * 0.1);
 	glVertex2f(xRight * 0.6, yTop * 0.3);
@@ -172,11 +161,11 @@ void display() {
 	glutSwapBuffers();
 
 	xPos += xSpeed;
-	yPos = sqrt(((xPosMax -abs(xPos))/ xPosMax)*yPosMax);
+	yPos = yPosMax -(yPosMax*xPos*xPos)/ (xPosMax*xPosMax);
 
 	if (xPos > xPosMax) {
 		xPos = xPosMin;
-		yPos = sqrt(((xPosMax - abs(xPos)) / xPosMax) * yPosMax);
+		yPos = yPosMax - (yPosMax * xPos * xPos) / (xPosMax * xPosMax);
 		day = !day;
 	}
 }
