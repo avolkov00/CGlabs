@@ -30,6 +30,7 @@ void initGL() {
 
 	glEnable(GL_LIGHTING);
 
+	glEnableClientState(GL_VERTEX_ARRAY);
 }
 
 
@@ -53,7 +54,7 @@ void display() {
 		sky_colour[1] = 0.0f;
 		sky_colour[2] = 0.2f;
 	}
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, sky_colour);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, sky_colour);
 	//glMaterialfv(GL_FRONT, GL_SPECULAR, ground_colour);
 	//glMaterialfv(GL_FRONT, GL_AMBIENT, ground_colour);
 
@@ -67,12 +68,12 @@ void display() {
 	// setup
 	glEnable(GL_LIGHT0);
 
-	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.05);
-	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.05);
+	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.005);
+	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.005);
 
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light1);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light1);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light1);
+	//glLightfv(GL_LIGHT0, GL_SPECULAR, light1);
+	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, light1);
+	//glLightfv(GL_LIGHT0, GL_AMBIENT, light1);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position1);
 	
 	glTranslatef(xPos, yPos, 0.0f);
@@ -89,7 +90,7 @@ void display() {
 		sun_colour[1] = 0.9f;
 		sun_colour[2] = 0.9f;
 	}
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, sun_colour);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, sun_colour);
 	glColor3f(1.0f, 0.5f, 0.1f);
 	glVertex2f(0.0f, 0.0f);
 	int numSegments = 100;
@@ -106,7 +107,7 @@ void display() {
 	//Земля
 	glBegin(GL_QUADS);
 	GLfloat ground_colour[] = { 0.09f, 0.35f, 0.17f };
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, ground_colour);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ground_colour);
 	//glMaterialfv(GL_FRONT, GL_SPECULAR, ground_colour);
 	//glMaterialfv(GL_FRONT, GL_AMBIENT, ground_colour);
 
@@ -119,7 +120,7 @@ void display() {
 
 	//Дом
 	GLfloat house_colour[] = { 0.5f, 0.2f, 0.0 };
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, house_colour);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, house_colour);
 	//glMaterialfv(GL_FRONT, GL_SPECULAR, house_colour);
 	//glMaterialfv(GL_FRONT, GL_AMBIENT, house_colour);
 	glBegin(GL_QUADS);
@@ -133,7 +134,7 @@ void display() {
 	//крыша
 	glBegin(GL_TRIANGLES);
 	GLfloat roof_colour[] = { 0.3f, 0.3f, 0.3f };
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, roof_colour);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, roof_colour);
 	glColor3f(0.3f, 0.3f, 0.3f);
 	glVertex2f(xRight * 0.15, yTop * 0.5);
 	glVertex2f(xRight * 0.45, yTop * 0.9);
@@ -143,7 +144,7 @@ void display() {
 	//окна
 	glBegin(GL_QUADS);
 	GLfloat windows_colour[] = { 0.9f, 0.9f, 0.6f };
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, windows_colour);
+	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, windows_colour);
 	glColor3f(0.9f, 0.9f, 0.6f);
 	glVertex2f(xRight * 0.3, yTop * 0.1);
 	glVertex2f(xRight * 0.4, yTop * 0.1);
