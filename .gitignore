@@ -9,7 +9,7 @@
 *.user
 *.userosscache
 *.sln.docstates
-
+stb_image.h
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -77,6 +77,7 @@ StyleCopReport.xml
 *.ipdb
 *.pgc
 *.pgd
+*.png
 *.rsp
 *.sbr
 *.tlb

@@ -5,18 +5,11 @@
 #include <cstdio>
 #include <math.h>
 #include <iostream>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#include <string>
+
 #define PI 3.14159265f
-
-
-// Нумерация элементов массивов vertices (присвоение вершинам номера от 0 до 7) и colors. Составляем из вершин треугольники - грани (а1, а2, а3, а4, а5, а6, а7, а8)
-GLubyte a1[] = { 0, 2, 1 }; //
-GLubyte a2[] = { 1, 2, 3 }; //
-GLubyte a3[] = { 0, 1, 4 }; //
-GLubyte a4[] = { 1, 3, 4 }; //
-GLubyte a5[] = { 0, 5, 2 }; //
-GLubyte a6[] = { 2, 5, 3 }; //
-GLubyte a7[] = { 0, 4, 5 }; //
-GLubyte a8[] = { 5, 4, 3 }; //
 
 char title[] = "Octahedron";
 int windowWidth = 640;
@@ -41,32 +34,106 @@ GLfloat zLightPos = 0.0f;
 
 int refreshMillis = 30;
 
+unsigned int  texture[8];
+
+int isTexOn = 0;
+// Нумерация элементов массивов vertices (присвоение вершинам номера от 0 до 7) и colors. Составляем из вершин треугольники - грани
+GLubyte vecArr[8][3] = 
+{		{ 1, 0, 2 },
+		{ 3, 1, 2 },
+		{ 0, 1, 4 },
+		{ 1, 3, 4 },
+		{ 0, 5, 2 },
+		{ 5, 3, 2 },
+		{ 5, 0, 4 },
+		{ 3, 5, 4 }
+};
+
+GLfloat normals[8][3] =
+{
+	{-1, 1, 1},
+	{1, 1, 1},
+	{-1, -1, 1},
+	{1, -1, 1},
+	{-1, 1, -1},
+	{1, 1, -1},
+	{-1, -1, -1},
+	{1, -1, -1}
+};
+
+GLfloat texCoord[] = {
+		0.0f, 0.0f,  // Нижний левый угол 
+		1.0f, 0.0f,  // Нижний правый угол
+		0.5f, 1.0f,   // Верхняя центральная сторона
+		0.0f, 0.0f,  // Нижний левый угол 
+		1.0f, 0.0f,  // Нижний правый угол
+		0.5f, 1.0f   // Верхняя центральная сторона
+};
+
+GLint vertices[] =
+{
+	-R, 0, 0,  //0 левый
+	0, 0, R, //1 дальный
+	0, R, 0, //2 верхний
+	R, 0, 0, //3 правый
+	0, -R, 0, //4 нижний
+	0, 0, -R //5 ближний
+};
+
+std::string picNames[8] = {
+	"circle1.png",
+	"circle2.png",
+	"circle3.png",
+	"circle4.png",
+	"circle5.png",
+	"circle6.png",
+	"circle7.png",
+	"circle8.png",
+};
 
 void setupPointers(void)
-{   
-	static GLint vertices[] =
-	{
-		-R, 0, 0,  //0 левый
-		0, 0, R, //1 дальный
-		0, R, 0, //2 верхний
-		R, 0, 0, //3 правый
-		0, -R, 0, //4 нижний
-		0, 0, -R //5 ближний
-	}; 
-	
+{ 
+
+	glEnable(GL_TEXTURE_2D);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	
-	glVertexPointer(3, GL_INT, 0, vertices); 
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	glVertexPointer(3, GL_INT, 0, vertices);
+	glTexCoordPointer(2, GL_FLOAT, 0, texCoord);
+
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 	glEnable(GL_LIGHTING);
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-	//glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE); 
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-	
+
 
 	glEnable(GL_NORMALIZE);
+
+}
+
+void Texture_Init()
+{
+	int w, h;
+	int count;
+	unsigned char* data;
+	for (int i = 0; i < 8; i++) {
+		data = stbi_load(picNames[i].c_str(), &w, &h, &count, 0);
+		glEnable(GL_TEXTURE_2D);
+		glGenTextures(1, &texture[i]);
+		glBindTexture(GL_TEXTURE_2D, texture[i]);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, count == 4 ? GL_RGBA : GL_RGB, w, h,
+			0, count == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, data);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		stbi_image_free(data);
+	}
 	
 }
+
+
 
 void display(void)
 {
@@ -78,94 +145,51 @@ void display(void)
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, initialcolor);
 	glEnable(GL_LIGHT0);
 
-	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.08);
+	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.8);
 	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.05);
 
 	GLfloat lightPosition[] = { xLightPos, yLightPos, zLightPos, 1 };
 	GLfloat lightColour[] = { 1, 1, 1, 0 };
-	
-
 
 	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, lightColour);
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
-
-
 	GLfloat color[] = { 0.7, 0.0, 0.0 };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
-	//glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, color);
-	
-	
+
+	if (isTexOn) {
+		glEnable(GL_TEXTURE_2D);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, lightColour);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, lightColour);
+	}
+	else {
+		glDisable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, color);
+	}
+
 	glTranslatef((1.0f) * xLightPos, yLightPos, (-1.0f) * zLightPos);
 	glutWireSphere(R / 6, 20, 20);
 	glTranslatef((-1.0f) * xLightPos, (-1.0f) * yLightPos, (1.0f) * zLightPos);
-	//8 вызовов по числу граней (пронумерованы выше)
-	
-	
-	glNormal3f(-1, 1, 1);
 
-	glTranslatef((-1) * moveCoef, (1) * moveCoef, (1) * moveCoef);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, a1);
-	moveCoef = moveCoef * (-1);
-	glTranslatef((-1) * moveCoef, (1) * moveCoef, (1) * moveCoef);
-	moveCoef = moveCoef * (-1);
+	for (int i = 0; i < 8; i++) {
+		glNormal3f(normals[i][0], normals[i][1], normals[i][2]);
+		glTranslatef((normals[i][0]) * moveCoef, (normals[i][1]) * moveCoef, (normals[i][2]) * moveCoef);
 
-	glNormal3f(1, 1, 1);
-	
-	glTranslatef((1) * moveCoef, (1) * moveCoef, (1) * moveCoef);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, a2);
-	moveCoef = moveCoef * (-1);
-	glTranslatef((1) * moveCoef, (1) * moveCoef, (1) * moveCoef);
-	moveCoef = moveCoef * (-1);
+		texCoord[vecArr[i][0] * 2] = 0.0f;
+		texCoord[vecArr[i][0] * 2 + 1] = 0.0f;
+		texCoord[vecArr[i][1] * 2] = 1.0f;
+		texCoord[vecArr[i][1] * 2 + 1] = 0.0f;
+		texCoord[vecArr[i][2] * 2] = 0.5f;
+		texCoord[vecArr[i][2] * 2 + 1] = 1.0f;
 
-	glNormal3f(-1, -1, 1);
-	
-	glTranslatef((-1) * moveCoef, (-1) * moveCoef, (1) * moveCoef);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, a3);
-	moveCoef = moveCoef * (-1);
-	glTranslatef((-1) * moveCoef, (-1) * moveCoef, (1) * moveCoef);
-	moveCoef = moveCoef * (-1);
+		glBindTexture(GL_TEXTURE_2D, texture[i]);
 
-	glNormal3f(1, -1, 1);
-	
-	glTranslatef((1) * moveCoef, (-1) * moveCoef, (1) * moveCoef);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, a4);
-	moveCoef = moveCoef * (-1);
-	glTranslatef((1) * moveCoef, (-1) * moveCoef, (1) * moveCoef);
-	moveCoef = moveCoef * (-1);
-
-	glNormal3f(-1, 1, -1);
-	
-	glTranslatef((-1) * moveCoef, (1) * moveCoef, (-1) * moveCoef);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, a5);
-	moveCoef = moveCoef * (-1);
-	glTranslatef((-1) * moveCoef, (1) * moveCoef, (-1) * moveCoef);
-	moveCoef = moveCoef * (-1);
-
-	glNormal3f(1, 1, -1);
-	
-	glTranslatef((1) * moveCoef, (1) * moveCoef, (-1) * moveCoef);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, a6);
-	moveCoef = moveCoef * (-1);
-	glTranslatef((1) * moveCoef, (1) * moveCoef, (-1) * moveCoef);
-	moveCoef = moveCoef * (-1);
-
-	glNormal3f(-1, -1, -1);
-	
-	glTranslatef((-1) * moveCoef, (-1) * moveCoef, (-1) * moveCoef);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, a7);
-	moveCoef = moveCoef * (-1);
-	glTranslatef((-1) * moveCoef, (-1) * moveCoef, (-1) * moveCoef);
-	moveCoef = moveCoef * (-1);
-
-	glNormal3f(1, -1, -1);
-	
-	glTranslatef((1) * moveCoef, (-1) * moveCoef, (-1) * moveCoef);
-	glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, a8);
-	moveCoef = moveCoef * (-1);
-	glTranslatef((1) * moveCoef, (-1) * moveCoef, (-1) * moveCoef);
-	moveCoef = moveCoef * (-1);
-
+		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, vecArr[i]);
+		moveCoef = moveCoef * (-1);
+		glTranslatef((normals[i][0]) * moveCoef, (normals[i][1]) * moveCoef, (normals[i][2]) * moveCoef);
+		moveCoef = moveCoef * (-1);
+	}
 
 	segment = (segment + 1) % numSegments;
 	std::cout << segment << " " << xLightPos << " " << zLightPos << "\n";
@@ -215,6 +239,12 @@ void keyboard_function(unsigned char key, int x, int y)
 			OCcounter += OCflag;
 		}
 	}
+	else if (key == 't') {
+		if (isTexOn) isTexOn = 0;
+		else {
+			isTexOn = 1;
+		}
+	}
 
 	glutPostRedisplay();
 
@@ -233,6 +263,8 @@ int main(int argc, char** argv)
 	glutReshapeFunc(reshape);
 	glutTimerFunc(0, Timer, 0);
 	glutKeyboardFunc(keyboard_function);
+	Texture_Init();
+
 	glutMainLoop();
 	return 0;
 }
