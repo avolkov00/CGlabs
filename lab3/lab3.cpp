@@ -38,15 +38,16 @@ unsigned int  texture[8];
 
 int isTexOn = 0;
 // Нумерация элементов массивов vertices (присвоение вершинам номера от 0 до 7) и colors. Составляем из вершин треугольники - грани
-GLubyte vecArr[8][3] = 
-{		{ 1, 0, 2 },
-		{ 3, 1, 2 },
-		{ 0, 1, 4 },
-		{ 1, 3, 4 },
-		{ 0, 5, 2 },
-		{ 5, 3, 2 },
-		{ 5, 0, 4 },
-		{ 3, 5, 4 }
+GLubyte vecArr[8][3] =
+{ 
+		{ 0, 1, 2 },
+		{ 1, 3, 2 },
+		{ 1, 0, 4 },
+		{ 3, 1, 4 },
+		{ 5, 0, 2 },
+		{ 3, 5, 2 },
+		{ 0, 5, 4 },
+		{ 5, 3, 4 }
 };
 
 GLfloat normals[8][3] =
@@ -73,11 +74,11 @@ GLfloat texCoord[] = {
 GLint vertices[] =
 {
 	-R, 0, 0,  //0 левый
-	0, 0, R, //1 дальный
+	0, 0, R, //1  ближний
 	0, R, 0, //2 верхний
 	R, 0, 0, //3 правый
 	0, -R, 0, //4 нижний
-	0, 0, -R //5 ближний
+	0, 0, -R //5 дальный
 };
 
 std::string picNames[8] = {
@@ -92,7 +93,7 @@ std::string picNames[8] = {
 };
 
 void setupPointers(void)
-{ 
+{
 
 	glEnable(GL_TEXTURE_2D);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -105,7 +106,7 @@ void setupPointers(void)
 	glEnable(GL_LIGHTING);
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);
-
+	glEnable(GL_DEPTH_TEST);
 
 	glEnable(GL_NORMALIZE);
 
@@ -130,7 +131,7 @@ void Texture_Init()
 		glBindTexture(GL_TEXTURE_2D, 0);
 		stbi_image_free(data);
 	}
-	
+
 }
 
 
@@ -138,7 +139,7 @@ void Texture_Init()
 void display(void)
 {
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	glTranslatef(0.0, 0.0, -2.0);
 	GLfloat initialcolor[] = { 0.4, 0.4, 0.4, 1.0 };
@@ -168,9 +169,10 @@ void display(void)
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, color);
 	}
 
-	glTranslatef((1.0f) * xLightPos, yLightPos, (-1.0f) * zLightPos);
+	glTranslatef((1.0f) * xLightPos, yLightPos, (1.0f) * zLightPos);
 	glutWireSphere(R / 6, 20, 20);
-	glTranslatef((-1.0f) * xLightPos, (-1.0f) * yLightPos, (1.0f) * zLightPos);
+	glLoadIdentity();
+	glTranslatef(0.0, 0.0, -2.0);
 
 	for (int i = 0; i < 8; i++) {
 		glNormal3f(normals[i][0], normals[i][1], normals[i][2]);
@@ -186,9 +188,9 @@ void display(void)
 		glBindTexture(GL_TEXTURE_2D, texture[i]);
 
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, vecArr[i]);
-		moveCoef = moveCoef * (-1);
-		glTranslatef((normals[i][0]) * moveCoef, (normals[i][1]) * moveCoef, (normals[i][2]) * moveCoef);
-		moveCoef = moveCoef * (-1);
+
+		glLoadIdentity();
+		glTranslatef(0.0, 0.0, -2.0);
 	}
 
 	segment = (segment + 1) % numSegments;
