@@ -22,7 +22,7 @@ int segment = 0;
 
 GLfloat R = 1; // радиус
 
-GLfloat maxSpacing = 0.12f;
+GLfloat maxSpacing = 0.1f;
 int OCcounter = 0;
 int OCflag = 0;
 GLfloat moveCoef = 0;
@@ -37,6 +37,10 @@ int refreshMillis = 30;
 unsigned int  texture[8];
 
 int isTexOn = 0;
+
+GLfloat alpha = 1.0f;
+GLfloat transparency = 0.5f;
+
 // Нумерация элементов массивов vertices (присвоение вершинам номера от 0 до 7) и colors. Составляем из вершин треугольники - грани
 GLubyte vecArr[8][3] =
 { 
@@ -109,6 +113,8 @@ void setupPointers(void)
 	glEnable(GL_DEPTH_TEST);
 
 	glEnable(GL_NORMALIZE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 }
 
@@ -155,18 +161,20 @@ void display(void)
 	glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, lightColour);
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
-	GLfloat color[] = { 0.7, 0.0, 0.0 };
+	GLfloat color[] = { 0.7, 0.0, 0.0, alpha };
+	GLfloat texColour[] = { 1, 1, 1, alpha };
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, color);
 
 	if (isTexOn) {
 		glEnable(GL_TEXTURE_2D);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, lightColour);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, lightColour);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, texColour);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, texColour);
 	}
 	else {
 		glDisable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, color);
 	}
 
 	glTranslatef((1.0f) * xLightPos, yLightPos, (1.0f) * zLightPos);
@@ -176,6 +184,7 @@ void display(void)
 
 	for (int i = 0; i < 8; i++) {
 		glNormal3f(normals[i][0], normals[i][1], normals[i][2]);
+
 		glTranslatef((normals[i][0]) * moveCoef, (normals[i][1]) * moveCoef, (normals[i][2]) * moveCoef);
 
 		texCoord[vecArr[i][0] * 2] = 0.0f;
@@ -194,16 +203,15 @@ void display(void)
 	}
 
 	segment = (segment + 1) % numSegments;
-	std::cout << segment << " " << xLightPos << " " << zLightPos << "\n";
+
+	std::cout << segment << " " << xLightPos << " " << zLightPos << " " << moveCoef << "\n";
 
 	xLightPos = lightRadius * cos(2.0f * PI * segment / numSegments);
 	zLightPos = lightRadius * sin(2.0f * PI * segment / numSegments);
-	//std::cout << xLightPos << " " << zLightPos << "\n";
 
 	if (((OCflag == 1) && (OCcounter < 100)) || ((OCflag == -1) && (OCcounter > 0))) {
 		moveCoef = 1.0f * OCcounter * maxSpacing / 100;
 		OCcounter += OCflag;
-
 	}
 
 	glutSwapBuffers();
@@ -227,9 +235,7 @@ void Timer(int value) {
 }
 
 void keyboard_function(unsigned char key, int x, int y)
-
 {
-
 	if (key == ' ')
 	{
 		if (OCcounter == 0) {
@@ -247,9 +253,13 @@ void keyboard_function(unsigned char key, int x, int y)
 			isTexOn = 1;
 		}
 	}
-
+	else if (key == 'a') {
+		if (alpha == 1) alpha = transparency;
+		else {
+			alpha = 1;
+		}
+	}
 	glutPostRedisplay();
-
 }
 
 int main(int argc, char** argv)
